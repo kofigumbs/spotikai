@@ -1,0 +1,3 @@
+build-essential
+libasound2-dev
+gcc-multilib
