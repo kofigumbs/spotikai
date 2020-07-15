@@ -8,17 +8,8 @@
     <link rel="icon" href="data:">
   </head>
   <body>
-    <button id="start">Start</button>
-    <script src="/pcm-player.js"></script>
-    <script>
-      document.getElementById("start").addEventListener("click", function() {
-        var player = new PCMPlayer();
-        var socket = new WebSocket(window.location.origin.replace(/^http/, "ws"));
-        socket.binaryType = "arraybuffer";
-        socket.addEventListener("message", function(event) {
-          player.feed(new Int16Array(event.data));
-        });
-      });
-    </script>
+    <audio controls preload="none">
+      <source src="/audio.mp3" type="audio/mpeg"></source>
+    </audio>
   </body>
 </html>

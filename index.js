@@ -1,6 +1,6 @@
 const fs = require("fs");
 const http = require("http");
-const ws = require("ws");
+const lame = require("@suldashi/lame");
 const { spawn } = require("child_process");
 const { PORT, SPOTIFY_USERNAME, SPOTIFY_PASSWORD } = process.env;
 
@@ -10,25 +10,24 @@ const server = http.createServer((request, response) => {
       response.writeHead(200, { "Content-Type": "text/html" });
       fs.createReadStream("index.html").pipe(response);
       break;
-    case "/pcm-player.js":
-      response.writeHead(200, { "Content-Type": "application/javascript" });
-      fs.createReadStream("pcm-player.js").pipe(response);
+
+    case "/audio.mp3":
+      const flags = [
+        "--name", "SpotiKai",
+        "--backend", "pipe",
+        "--bitrate", "160",
+        "--initial-volume", "100",
+        "--username", SPOTIFY_USERNAME, "--password", SPOTIFY_PASSWORD,
+      ];
+      response.writeHead(200, { "Content-Type": "audio/mpeg" });
+      spawn("librespot", flags, { stdio: [ "ignore", "pipe", "inherit" ] })
+        .stdout.pipe(new lame.Encoder()).pipe(response);
       break;
+
     default:
       response.writeHead(404, {});
       response.end();
   }
-});
-
-new ws.Server({ server }).on("connection", socket => {
-  const flags = [
-    "--name", "SpotiKai",
-    "--backend", "pipe",
-    "--bitrate", "160",
-    "--username", SPOTIFY_USERNAME, "--password", SPOTIFY_PASSWORD,
-  ];
-  spawn("librespot", flags, { stdio: [ "ignore", "pipe", "inherit" ] })
-    .stdout.on("data", data => socket.send(data, { binary: true }));
 });
 
 server.listen(PORT);
