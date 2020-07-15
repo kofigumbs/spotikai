@@ -6,10 +6,37 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <link rel="icon" href="data:">
+    <style>
+      button {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border: none;
+        outline: none;
+        background: #1DB954;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <audio controls preload="none" mozaudiochannel="content">
+    <button id="play">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-music"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    </button>
+    <audio preload="none" mozaudiochannel="content" id="stream">
       <source src="/audio.mp3" type="audio/mpeg"></source>
     </audio>
+    <script>
+      document.getElementById("play").addEventListener("click", function() {
+        document.getElementById("stream").play();
+      });
+    </script>
   </body>
 </html>
