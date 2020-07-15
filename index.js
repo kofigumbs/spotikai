@@ -5,12 +5,18 @@ const { spawn } = require("child_process");
 const { PORT, SPOTIFY_USERNAME, SPOTIFY_PASSWORD } = process.env;
 
 const server = http.createServer((request, response) => {
-  if (request.url === "/pcm-player.js") {
-    response.writeHead(200, { "Content-Type": "application/javascript" });
-    fs.createReadStream("pcm-player.js").pipe(response);
-  } else {
-    response.writeHead(200, { "Content-Type": "text/html" });
-    fs.createReadStream("index.html").pipe(response);
+  switch (request.url) {
+    case "/":
+      response.writeHead(200, { "Content-Type": "text/html" });
+      fs.createReadStream("index.html").pipe(response);
+      break;
+    case "/pcm-player.js":
+      response.writeHead(200, { "Content-Type": "application/javascript" });
+      fs.createReadStream("pcm-player.js").pipe(response);
+      break;
+    default:
+      response.writeHead(404, {});
+      response.end();
   }
 });
 
