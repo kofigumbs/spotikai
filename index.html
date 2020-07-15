@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SpotiKai</title>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <link rel="icon" href="data:">
+  </head>
+  <body>
+    <button id="start">Start</button>
+    <script src="/pcm-player.js"></script>
+    <script>
+      document.getElementById("start").addEventListener("click", function() {
+        var player = new PCMPlayer();
+        var socket = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+        socket.binaryType = "arraybuffer";
+        socket.addEventListener("message", function(event) {
+          player.feed(new Int16Array(event.data));
+        });
+      });
+    </script>
+  </body>
+</html>

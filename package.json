@@ -1,0 +1,10 @@
+{
+  "name": "SpotiKai",
+  "version": "1.0.0",
+  "description": "Spotify for KaiOS",
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "ws": "^7.3.1"
+  }
+}
