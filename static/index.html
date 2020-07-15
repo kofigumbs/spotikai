@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
     <link rel="icon" href="data:">
     <style>
-      button {
+      #play {
         position: absolute;
         top: 0;
         left: 0;
@@ -24,19 +24,38 @@
         color: white;
         cursor: pointer;
       }
+      .hide {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
-    <button id="play">
+    <form id="form" class="hide">
+      <input id="password" type="password" placeholder="Password">
+      <button type="submit">Submit</button>
+    </form>
+    <button id="play" class="hide">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-music"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
     </button>
-    <audio preload="none" mozaudiochannel="content" id="stream">
+    <audio id="stream" preload="none" mozaudiochannel="content">
       <source src="/audio.mp3" type="audio/mpeg"></source>
     </audio>
     <script>
-      document.getElementById("play").addEventListener("click", function() {
-        document.getElementById("stream").play();
-      });
+      if (document.cookie === "") {
+        const form = document.getElementById("form");
+        form.classList.remove("hide");
+        form.addEventListener("submit", function(e) {
+          e.preventDefault();
+          document.cookie = "password=" + document.getElementById("password").value;
+          window.location.reload();
+        });
+      } else {
+        const play = document.getElementById("play");
+        play.classList.remove("hide");
+        play.addEventListener("click", function() {
+          document.getElementById("stream").play();
+        });
+      }
     </script>
   </body>
 </html>
