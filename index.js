@@ -20,7 +20,6 @@ const server = http.createServer((request, response) => {
       const flags = [
         "--name", "SpotiKai",
         "--backend", "pipe",
-        "--bitrate", "160",
         "--initial-volume", "100",
         "--username", SPOTIFY_USERNAME, "--password", SPOTIFY_PASSWORD,
       ];
