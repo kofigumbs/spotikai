@@ -8,12 +8,12 @@ const server = http.createServer((request, response) => {
   switch (request.url) {
     case "/":
       response.writeHead(200, { "Content-Type": "text/html" });
-      fs.createReadStream("index.html").pipe(response);
+      fs.createReadStream("static/index.html").pipe(response);
       break;
 
     case "/manifest.webapp":
       response.writeHead(200, { "Content-Type": "application/x-web-app-manifest+json" });
-      fs.createReadStream("manifest.webapp").pipe(response);
+      fs.createReadStream("static/manifest.webapp").pipe(response);
       break;
 
     case "/audio.mp3":
