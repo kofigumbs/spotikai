@@ -37,11 +37,9 @@ const login = (response, url) => {
   const Location = "https://accounts.spotify.com/authorize" +
     "?response_type=code" +
     `&client_id=${SPOTIFY_CLIENT_ID}` +
-    "&scope=" + encodeURIComponent([
-      "user-library-read",
-      "streaming",
-      "user-read-playback-state",
-      "user-modify-playback-state" ].join(" ")) +
+    "&scope=" + encodeURIComponent(
+      "user-library-read streaming user-read-playback-state user-modify-playback-state"
+    ) +
     "&redirect_uri=" + encodeURIComponent(url.origin + "/authorize");
   response.writeHead(302, { Location });
   response.end();
@@ -77,7 +75,12 @@ const authorize = (response, url) => {
 };
 
 const server = http.createServer((request, response) => {
-  const url = new URL(request.url, `http://${request.headers.host}`);
+  const url = new URL(
+    request.url,
+    request.headers.host.match(/localhost/)
+      ? `http://${request.headers.host}`
+      : `https://${request.headers.host}`
+  );
   switch (url.pathname) {
     case "/":
       return static(response, "index.html", "text/html");
