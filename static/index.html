@@ -19,6 +19,7 @@
         justify-content: center;
 
         border: none;
+        border-radius: 0;
         outline: none;
         background: #1DB954;
         color: white;
@@ -59,7 +60,7 @@
         const token = window.location.hash.slice(1);
         window.history.replaceState(null, null, "#");
         if (!token) {
-          window.location = "/login";
+          window.location = "/login?v=" + (new Date).getTime();
           return;
         }
 
