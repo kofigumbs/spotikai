@@ -24,6 +24,9 @@
         color: white;
         cursor: pointer;
       }
+      #play:disabled {
+        background: #191414;
+      }
       .hide {
         display: none !important;
       }
@@ -41,21 +44,53 @@
       <source src="/audio.mp3" type="audio/mpeg"></source>
     </audio>
     <script>
-      if (document.cookie === "") {
-        const form = document.getElementById("form");
-        form.classList.remove("hide");
-        form.addEventListener("submit", function(e) {
-          e.preventDefault();
-          document.cookie = "password=" + document.getElementById("password").value;
-          window.location.reload();
-        });
-      } else {
+      (function() {
+        if (document.cookie === "") {
+          const form = document.getElementById("form");
+          form.classList.remove("hide");
+          form.addEventListener("submit", function(e) {
+            e.preventDefault();
+            document.cookie = "password=" + document.getElementById("password").value;
+            window.location.reload();
+          });
+          return;
+        }
+
+        const token = window.location.hash.slice(1);
+        window.history.replaceState(null, null, "#");
+        if (!token) {
+          window.location = "/login";
+          return;
+        }
+
+        const spotify = (method, path, params, body) => {
+          return fetch(`https://api.spotify.com/v1/me/${path}?${params || ""}`, {
+            method: method,
+            body: body && JSON.stringify(body),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+          }).then(response => {
+            if (response.ok) return response;
+            throw Error(response.statusText);
+          });
+        };
+
         const play = document.getElementById("play");
         play.classList.remove("hide");
-        play.addEventListener("click", function() {
-          document.getElementById("stream").play();
+        play.addEventListener("click", function start() {
+          const stream = document.getElementById("stream");
+          stream.addEventListener("stalled", function() {
+            spotify("GET", "player/devices")
+              .then(response => response.json())
+              .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
+              .then(({ id }) => spotify("PUT", "player", "", { play: true, device_ids: [ id ] }))
+              .then(() => play.removeEventListener("click", start));
+          });
+          stream.play();
         });
-      }
+      })();
     </script>
   </body>
 </html>

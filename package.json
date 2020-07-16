@@ -5,6 +5,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@suldashi/lame": "^1.2.5"
+    "@suldashi/lame": "^1.2.5",
+    "node-fetch": "^2.6.0"
   }
 }
