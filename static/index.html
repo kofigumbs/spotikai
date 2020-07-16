@@ -46,17 +46,6 @@
     </audio>
     <script>
       (function() {
-        if (document.cookie === "") {
-          const form = document.getElementById("form");
-          form.classList.remove("hide");
-          form.addEventListener("submit", function(e) {
-            e.preventDefault();
-            document.cookie = "password=" + document.getElementById("password").value;
-            window.location.reload();
-          });
-          return;
-        }
-
         const token = window.location.hash.slice(1);
         window.history.replaceState(null, null, "#");
         if (!token) {

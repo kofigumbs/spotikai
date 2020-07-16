@@ -1,3 +1,4 @@
+var Cookies = require("cookies");
 const fetch = require("node-fetch");
 const fs = require("fs");
 const http = require("http");
@@ -5,11 +6,9 @@ const lame = require("@suldashi/lame");
 const { spawn } = require("child_process");
 const {
   PORT,
-  STREAM_PASSWORD,
   SPOTIFY_USERNAME, SPOTIFY_PASSWORD,
   SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
-
-const base64 = s => Buffer.from(s, "binary").toString("base64");
+const SIGNING_KEY = require("uuid").v4();
 
 const static = (response, path, contentType) => {
   response.writeHead(200, { "Content-Type": contentType });
@@ -21,7 +20,10 @@ const notFound = response => {
   response.end();
 };
 
-const audio = response => {
+const audio = (response, cookies) => {
+  if (cookies.get("user", { signed: true }) !== "authorized") {
+    return notFound(response);
+  }
   const flags = [
     "--name", "SpotiKai",
     "--backend", "pipe",
@@ -45,12 +47,13 @@ const login = (response, url) => {
   response.end();
 };
 
-const authorize = (response, url) => {
+const authorize = (response, url, cookies) => {
+  const client = `${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`;
   fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      "Authorization": `Basic ${base64(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`)}`,
+      "Authorization": `Basic ${Buffer.from(client, "binary").toString("base64")}`,
     },
     body:  [
       "grant_type=authorization_code",
@@ -59,22 +62,24 @@ const authorize = (response, url) => {
     ].join("&"),
   })
     .then(response => {
-      if (response.ok) return response;
+      if (response.ok) return response.json();
       throw Error(response.statusText);
     })
-    .then(response => response.json())
     .then(body => {
-      response.writeHead(301, { Location: `${url.origin}#${body.access_token}` });
+      response.statusCode = 301;
+      response.setHeader("Location", `${url.origin}#${body.access_token}`);
+      cookies.set("user", "authorized", { signed: true, sameSite: "strict" });
       response.end();
     })
-    .catch(e => {
-      console.error(e);
+    .catch(error => {
+      console.error(error);
       response.writeHead(500);
       response.end();
     });
 };
 
 const server = http.createServer((request, response) => {
+  const cookies = new Cookies(request, response, { keys: [ SIGNING_KEY ] });
   const url = new URL(
     request.url,
     request.headers.host.match(/localhost/)
@@ -89,14 +94,12 @@ const server = http.createServer((request, response) => {
     case "/login":
       return login(response, url);
     case "/authorize":
-      return authorize(response, url);
+      return authorize(response, url, cookies);
     case "/audio.mp3":
-      return request.headers.cookie === `password=${STREAM_PASSWORD}`
-        ? audio(response)
-        : notFound(response);
+      return audio(response, cookies);
     default:
       return notFound(response);
   }
 });
 
-server.listen(PORT);
+server.listen(PORT, () => console.log(`Running on port ${PORT}`));

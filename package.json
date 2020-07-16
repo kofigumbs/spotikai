@@ -6,6 +6,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@suldashi/lame": "^1.2.5",
-    "node-fetch": "^2.6.0"
+    "cookies": "^0.8.0",
+    "node-fetch": "^2.6.0",
+    "uuid": "^8.2.0"
   }
 }
