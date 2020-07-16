@@ -53,6 +53,14 @@
           return;
         }
 
+        const stream = document.getElementById("stream");
+        const play = document.getElementById("play");
+        play.classList.remove("hide");
+        play.addEventListener("click", function start() {
+          play.disabled = true;
+          stream.play();
+        });
+
         const spotify = (method, path, params, body) => {
           return fetch(`https://api.spotify.com/v1/me/${path}?${params || ""}`, {
             method: method,
@@ -64,18 +72,45 @@
           });
         };
 
-        const play = document.getElementById("play");
-        play.classList.remove("hide");
-        play.addEventListener("click", function start() {
-          const stream = document.getElementById("stream");
-          stream.addEventListener("stalled", function() {
-            spotify("GET", "player/devices")
-              .then(response => response.json())
-              .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
-              .then(({ id }) => spotify("PUT", "player", "", { play: true, device_ids: [ id ] }))
-              .then(() => play.removeEventListener("click", start));
-          });
-          stream.play();
+        const getTracks = (library, params) => {
+          return spotify("GET", "tracks", params)
+            .then(response => response.json())
+            .then(body => {
+              body.items.forEach(item => library.push(item.track.uri));
+              return body.next
+                ? getTracks(library, new URL(body.next).search.slice(1))
+                : library;
+            });
+        };
+
+        /* https://github.com/sindresorhus/array-shuffle/blob/master/index.js */
+        const shuffle = input => {
+          var rand;
+          var tmp;
+          var len = input.length;
+          var ret = input.slice();
+
+          while (len) {
+            rand = Math.floor(Math.random() * len--);
+            tmp = ret[len];
+            ret[len] = ret[rand];
+            ret[rand] = tmp;
+          }
+
+          return ret;
+        };
+
+        stream.addEventListener("stalled", function() {
+          spotify("GET", "player/devices")
+            .then(response => response.json())
+            .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
+            .then(device => {
+              getTracks([], "limit=50").then(library => {
+                return spotify("PUT", "player/play", `device_id=${device.id}`, {
+                  uris: shuffle(library).slice(0, 100),
+                });
+              });
+            });
         });
       })();
     </script>
