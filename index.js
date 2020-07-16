@@ -43,7 +43,7 @@ const login = (response, url) => {
       "user-read-playback-state",
       "user-modify-playback-state" ].join(" ")) +
     "&redirect_uri=" + encodeURIComponent(url.origin + "/authorize");
-  response.writeHead(301, { Location });
+  response.writeHead(302, { Location });
   response.end();
 };
 
