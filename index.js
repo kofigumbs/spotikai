@@ -63,17 +63,26 @@ const authorize = (response, url, cookies) => {
   })
     .then(response => {
       if (response.ok) return response.json();
-      throw Error(response.statusText);
+      else throw Error(response.statusText);
     })
-    .then(body => {
+    .then(({ access_token }) => {
+      return fetch("https://api.spotify.com/v1/me", {
+        headers: { "Authorization": `Bearer ${access_token}` },
+      })
+        .then(response => response.json())
+        .then(({ id }) => {
+          if (SPOTIFY_USERNAME === id) return access_token;
+          else throw Error("Some other Spotify user is trying to access");
+        });
+    }).then(access_token => {
       response.statusCode = 301;
-      response.setHeader("Location", `${url.origin}#${body.access_token}`);
+      response.setHeader("Location", `${url.origin}#${access_token}`);
       cookies.set("user", "authorized", { signed: true, sameSite: "strict" });
       response.end();
     })
     .catch(error => {
       console.error(error);
-      response.writeHead(500);
+      response.writeHead(401);
       response.end();
     });
 };
@@ -102,4 +111,4 @@ const server = http.createServer((request, response) => {
   }
 });
 
-server.listen(PORT, () => console.log(`Running on port ${PORT}`));
+server.listen(PORT, () =>  console.log("\033[1m%s\x1b[0m", `Running on port ${PORT}`));
