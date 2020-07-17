@@ -60,7 +60,7 @@
         const stream = document.getElementById("stream");
         const play = document.getElementById("play");
         play.classList.remove("hide");
-        play.addEventListener("click", function start() {
+        play.addEventListener("click", function() {
           play.disabled = true;
           stream.play();
         });
@@ -93,13 +93,16 @@
           return ret;
         };
 
+        const retry = () => { stream.load(); stream.play(); };
+        stream.addEventListener("error", retry);
         stream.addEventListener("stalled", function() {
           spotify("GET", "player/devices")
             .then(response => response.json())
             .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
-            .then(device => spotify("PUT", "player/play", `device_id=${device.id}`, {
+            .then(({ id }) => spotify("PUT", "player/play", `device_id=${id}`, {
               uris: shuffle(library).slice(0, 100),
-            }));
+            }))
+            .catch(retry);
         });
       })();
     </script>
