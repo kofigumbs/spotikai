@@ -39,12 +39,12 @@
       <input id="password" type="password" placeholder="Password">
       <button type="submit">Submit</button>
     </form>
-    <button id="play" class="hide">
-      ▶
-    </button>
+    <button id="play" class="hide">▶</button>
     <audio id="stream" preload="none" mozaudiochannel="content">
       <source src="/audio.mp3" type="audio/mpeg"></source>
     </audio>
+    <script src="/spotify.js"></script>
+    <script src="/library.js"></script>
     <script>
       (function() {
         const token = window.location.hash.slice(1);
@@ -53,6 +53,9 @@
           window.location = "/login?v=" + (new Date).getTime();
           return;
         }
+
+        // NOTE: Uncomment this to update library
+        // window.location = `/library#${token}`;
 
         const stream = document.getElementById("stream");
         const play = document.getElementById("play");
@@ -71,17 +74,6 @@
             if (response.ok) return response;
             else throw Error(response.statusText);
           });
-        };
-
-        const getTracks = (library, params) => {
-          return spotify("GET", "tracks", params)
-            .then(response => response.json())
-            .then(body => {
-              body.items.forEach(item => library.push(item.track.uri));
-              return body.next
-                ? getTracks(library, new URL(body.next).search.slice(1))
-                : library;
-            });
         };
 
         /* https://github.com/sindresorhus/array-shuffle/blob/master/index.js */
@@ -105,13 +97,9 @@
           spotify("GET", "player/devices")
             .then(response => response.json())
             .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
-            .then(device => {
-              getTracks([], "limit=50").then(library => {
-                return spotify("PUT", "player/play", `device_id=${device.id}`, {
-                  uris: shuffle(library).slice(0, 100),
-                });
-              });
-            });
+            .then(device => spotify("PUT", "player/play", `device_id=${device.id}`, {
+              uris: shuffle(library).slice(0, 100),
+            }));
         });
       })();
     </script>

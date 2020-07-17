@@ -98,6 +98,12 @@ const server = http.createServer((request, response) => {
   switch (url.pathname) {
     case "/":
       return static(response, "index.html", "text/html");
+    case "/library":
+      return static(response, "library.html", "text/html");
+    case "/spotify.js":
+      return static(response, "spotify.js", "application/javascript");
+    case "/library.js":
+      return static(response, "library.js", "application/javascript");
     case "/manifest.webapp":
       return static(response, "manifest.webapp.json", "application/x-web-app-manifest+json");
     case "/login":
