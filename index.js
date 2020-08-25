@@ -1,14 +1,17 @@
-var Cookies = require("cookies");
+const { PORT, MODE, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
+const SIGNING_KEY = require("crypto").randomBytes(20).toString("hex");
+
+const Cookies = require("cookies");
 const fetch = require("node-fetch");
 const fs = require("fs");
 const http = require("http");
 const lame = require("@suldashi/lame");
 const { spawn } = require("child_process");
-const {
-  PORT,
-  SPOTIFY_USERNAME, SPOTIFY_PASSWORD,
-  SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
-const SIGNING_KEY = require("uuid").v4();
+
+const getJson = response => {
+  if (response.ok) return response.json();
+  else throw Error(response.statusText);
+};
 
 const static = (response, path, contentType) => {
   response.writeHead(200, { "Content-Type": contentType });
@@ -21,17 +24,18 @@ const notFound = response => {
 };
 
 const audio = (response, cookies) => {
-  if (cookies.get("user", { signed: true }) !== "authorized") {
-    return notFound(response);
-  }
+  const username = cookies.get("username", { signed: true });
+  const token = cookies.get("token", { signed: true });
+  if (!username || !token) return notFound(response);
+
   const flags = [
     "--name", "SpotiKai",
     "--backend", "pipe",
     "--initial-volume", "100",
-    "--username", SPOTIFY_USERNAME, "--password", SPOTIFY_PASSWORD,
+    "--username", username, "--token", token,
   ];
   response.writeHead(200, { "Content-Type": "audio/mpeg" });
-  spawn("librespot", flags, { stdio: [ "ignore", "pipe", "inherit" ] })
+  spawn(`./librespot/target/${MODE}/librespot`, flags, { stdio: [ "ignore", "pipe", "inherit" ] })
     .stdout.pipe(new lame.Encoder()).pipe(response);
 };
 
@@ -61,23 +65,18 @@ const authorize = (response, url, cookies) => {
       `redirect_uri=${url.origin}/authorize`,
     ].join("&"),
   })
-    .then(response => {
-      if (response.ok) return response.json();
-      else throw Error(response.statusText);
-    })
+    .then(getJson)
     .then(({ access_token }) => {
       return fetch("https://api.spotify.com/v1/me", {
         headers: { "Authorization": `Bearer ${access_token}` },
       })
-        .then(response => response.json())
-        .then(({ id }) => {
-          if (SPOTIFY_USERNAME === id) return access_token;
-          else throw Error("Some other Spotify user is trying to access");
-        });
-    }).then(access_token => {
+        .then(getJson)
+        .then(({ id }) => ({ id, access_token }));
+    }).then(credentials => {
       response.statusCode = 301;
-      response.setHeader("Location", `${url.origin}#${access_token}`);
-      cookies.set("user", "authorized", { signed: true, sameSite: "strict" });
+      response.setHeader("Location", `${url.origin}#${credentials.access_token}`);
+      cookies.set("username", credentials.id, { signed: true, sameSite: "strict" });
+      cookies.set("token", credentials.access_token, { signed: true, sameSite: "strict" });
       response.end();
     })
     .catch(error => {

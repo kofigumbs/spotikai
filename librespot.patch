@@ -1,0 +1,60 @@
+diff --git a/src/main.rs b/src/main.rs
+index 7803a9f..ca51f55 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -13,7 +13,7 @@ use tokio_core::reactor::{Core, Handle};
+ use tokio_io::IoStream;
+ use url::Url;
+ 
+-use librespot::core::authentication::{get_credentials, Credentials};
++use librespot::core::authentication::{Credentials};
+ use librespot::core::cache::Cache;
+ use librespot::core::config::{ConnectConfig, DeviceType, SessionConfig, VolumeCtrl};
+ use librespot::core::session::Session;
+@@ -26,6 +26,8 @@ use librespot::playback::config::{Bitrate, PlayerConfig};
+ use librespot::playback::mixer::{self, Mixer, MixerConfig};
+ use librespot::playback::player::{Player, PlayerEvent};
+ 
++use librespot::protocol::authentication::AuthenticationType;
++
+ mod player_event_handler;
+ use crate::player_event_handler::{emit_sink_event, run_program_on_events};
+ 
+@@ -115,7 +117,7 @@ fn setup(args: &[String]) -> Setup {
+         .optflag("", "emit-sink-events", "Run program set by --onevent before sink is opened and after it is closed.")
+         .optflag("v", "verbose", "Enable verbose output")
+         .optopt("u", "username", "Username to sign in with", "USERNAME")
+-        .optopt("p", "password", "Password", "PASSWORD")
++        .optopt("", "token", "OAuth access token", "TOKEN")
+         .optopt("", "proxy", "HTTP proxy to use when connecting", "PROXY")
+         .optopt("", "ap-port", "Connect to AP with specified port. If no AP with that port are present fallback AP will be used. Available ports are usually 80, 443 and 4070", "AP_PORT")
+         .optflag("", "disable-discovery", "Disable discovery mode")
+@@ -274,21 +276,13 @@ fn setup(args: &[String]) -> Setup {
+ 
+     let name = matches.opt_str("name").unwrap();
+ 
+-    let credentials = {
+-        let cached_credentials = cache.as_ref().and_then(Cache::credentials);
+-
+-        let password = |username: &String| -> String {
+-            write!(stderr(), "Password for {}: ", username).unwrap();
+-            stderr().flush().unwrap();
+-            rpassword::read_password().unwrap()
+-        };
+-
+-        get_credentials(
+-            matches.opt_str("username"),
+-            matches.opt_str("password"),
+-            cached_credentials,
+-            password,
+-        )
++    let credentials = match (matches.opt_str("username"), matches.opt_str("token")) {
++        (Some(username), Some(token)) => Some(Credentials {
++            username: username,
++            auth_data: token.into_bytes(),
++            auth_type: AuthenticationType::AUTHENTICATION_SPOTIFY_TOKEN,
++        }),
++        _ => None
+     };
+ 
+     let session_config = {

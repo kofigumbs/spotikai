@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "Spotify for KaiOS",
   "author": "",
+  "repository": "https://github.com/hkgumbs/spotikai",
   "license": "UNLICENSED",
+  "scripts": {
+    "start": "MODE=release node index.js",
+    "start:debug": "rerun -- MODE=debug PORT=4001 node index.js",
+    "postinstall": "cd librespot && git reset --hard && git apply ../librespot.patch"
+  },
   "dependencies": {
     "@suldashi/lame": "^1.2.5",
     "cookies": "^0.8.0",
-    "node-fetch": "^2.6.0",
-    "uuid": "^8.2.0"
+    "node-fetch": "^2.6.0"
   }
 }
