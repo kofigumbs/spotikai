@@ -28,15 +28,19 @@ const audio = (response, cookies) => {
   const token = cookies.get("token", { signed: true });
   if (!username || !token) return notFound(response);
 
+  response.writeHead(200, { "Content-Type": "audio/mpeg" });
   const flags = [
     "--name", "SpotiKai",
+    "--device-type", "smartphone",
     "--backend", "pipe",
     "--initial-volume", "100",
     "--username", username, "--token", token,
   ];
-  response.writeHead(200, { "Content-Type": "audio/mpeg" });
-  spawn(`./librespot/target/${MODE}/librespot`, flags, { stdio: [ "ignore", "pipe", "inherit" ] })
-    .stdout.pipe(new lame.Encoder()).pipe(response);
+  const subprocess = spawn(`./librespot/target/${MODE}/librespot`, flags, {
+    stdio: [ "ignore", "pipe", "inherit" ]
+  });
+  subprocess.stdout.pipe(new lame.Encoder()).pipe(response);
+  request.on("close", () => subprocess.kill());
 };
 
 const login = (response, url) => {
