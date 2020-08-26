@@ -11,8 +11,6 @@
     <audio id="stream" preload="none" mozaudiochannel="content">
       <source src="/audio.mp3" type="audio/mpeg"></source>
     </audio>
-    <script src="/spotify.js"></script>
-    <script src="/library.js"></script>
     <script>
       (function() {
         const token = window.location.hash.slice(1);
@@ -21,9 +19,6 @@
           window.location = "/login?v=" + (new Date).getTime();
           return;
         }
-
-        // NOTE: Uncomment this to update library
-        // window.location = `/library#${token}`;
 
         const spotify = (method, path, params, body) => {
           return fetch(`https://api.spotify.com/v1/me/${path}?${params || ""}`, {
@@ -36,38 +31,51 @@
           });
         };
 
-        /* https://github.com/sindresorhus/array-shuffle/blob/master/index.js */
+        /* 
+         * <https://github.com/sindresorhus/array-shuffle>
+         * Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+         */
         const shuffle = input => {
           var rand;
           var tmp;
           var len = input.length;
           var ret = input.slice();
-
           while (len) {
             rand = Math.floor(Math.random() * len--);
             tmp = ret[len];
             ret[len] = ret[rand];
             ret[rand] = tmp;
           }
-
           return ret;
         };
 
-        const stream = document.getElementById("stream");
-        const retry = () => { stream.load(); stream.play(); };
-        stream.addEventListener("error", retry);
-        stream.addEventListener("stalled", function() {
-          spotify("GET", "player/devices")
+        const library = (function getLibrary(tracks = [], params = "limit=50") {
+          return spotify("GET", "tracks", params)
             .then(response => response.json())
-            .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
-            .then(({ id }) => spotify("PUT", "player/play", `device_id=${id}`, {
-              uris: shuffle(library).slice(0, 100),
-            }))
-            .catch(retry);
-        });
-      })();
+            .then(body => {
+              body.items.forEach(item => tracks.push(item.track.uri));
+              return body.next
+                ? getLibrary(tracks, new URL(body.next).search.slice(1))
+                : tracks;
+            });
+        })();
 
-      stream.play();
+        const stream = document.getElementById("stream");
+        stream.addEventListener("stalled", function() {
+          library.then(tracks => {
+            return spotify("GET", "player/devices")
+              .then(response => response.json())
+              .then(({ devices }) => devices.find(x => x.name === "SpotiKai"))
+              .then(({ id }) => spotify("PUT", "player/play", `device_id=${id}`, {
+                uris: shuffle(tracks).slice(0, 100),
+              }))
+          });
+        });
+
+        stream.play();
+        stream.addEventListener("error", () => window.location.reload());
+        window.addEventListener("error", () => window.location.reload());
+      })();
     </script>
   </body>
 </html>
