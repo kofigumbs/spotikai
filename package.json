@@ -6,8 +6,8 @@
   "repository": "https://github.com/hkgumbs/spotikai",
   "license": "UNLICENSED",
   "scripts": {
-    "start": "MODE=release node index.js",
-    "start:debug": "rerun -- MODE=debug PORT=4001 node index.js",
+    "start": "MODE=release node src/index.js",
+    "start:debug": "rerun -- MODE=debug PORT=4001 node src/index.js",
     "postinstall": "cd librespot && git reset --hard && git apply ../librespot.patch"
   },
   "dependencies": {
