@@ -1,4 +1,4 @@
-const { PORT, MODE, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
+const { PORT, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
 const SIGNING_KEY = require("crypto").randomBytes(20).toString("hex");
 
 const Cookies = require("cookies");
@@ -23,7 +23,7 @@ const notFound = response => {
   response.end();
 };
 
-const audio = (response, cookies) => {
+const audio = (request, response, cookies) => {
   const username = cookies.get("username", { signed: true });
   const token = cookies.get("token", { signed: true });
   if (!username || !token) return notFound(response);
@@ -36,7 +36,7 @@ const audio = (response, cookies) => {
     "--initial-volume", "100",
     "--username", username, "--token", token,
   ];
-  const subprocess = spawn(`./librespot/target/${MODE}/librespot`, flags, {
+  const subprocess = spawn(`./librespot/target/release/librespot`, flags, {
     stdio: [ "ignore", "pipe", "inherit" ]
   });
   subprocess.stdout.pipe(new lame.Encoder()).pipe(response);
@@ -106,7 +106,7 @@ const server = http.createServer((request, response) => {
     case "/authorize":
       return authorize(response, url, cookies);
     case "/audio.mp3":
-      return audio(response, cookies);
+      return audio(request, response, cookies);
     default:
       return notFound(response);
   }
