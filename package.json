@@ -1,7 +1,7 @@
 {
   "name": "SpotiKai",
   "version": "1.0.0",
-  "description": "Spotify for KaiOS",
+  "description": "Spotify streaming client for KaiOS",
   "author": "",
   "repository": "https://github.com/hkgumbs/spotikai",
   "license": "UNLICENSED",
