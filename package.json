@@ -8,7 +8,7 @@
   "scripts": {
     "start": "MODE=release node src/index.js",
     "start:debug": "rerun -- MODE=debug PORT=4001 node src/index.js",
-    "postinstall": "(cd librespot && git init && git reset --hard && git apply ../src/librespot.patch)"
+    "postinstall": "bash src/postinstall.sh"
   },
   "dependencies": {
     "@suldashi/lame": "^1.2.5",

@@ -7,7 +7,7 @@ It works... it's just not very usable ¯\_(ツ)_/¯
 ```
 git submodule update --init
 npm install
-(cd librespot && cargo build)
+cargo build --manifest-path librespot/Cargo.toml
 SPOTIFY_CLIENT_ID=$SPOTIFY_CLIENT_ID \
   SPOTIFY_CLIENT_SECRET=$SPOTIFY_CLIENT_SECRET \
   npm run start:debug
