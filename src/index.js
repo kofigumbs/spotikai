@@ -13,9 +13,9 @@ const getJson = response => {
   else throw Error(response.statusText);
 };
 
-const static = (response, path, contentType) => {
+const www = (response, path, contentType) => {
   response.writeHead(200, { "Content-Type": contentType });
-  fs.createReadStream(`static/${path}`).pipe(response);
+  fs.createReadStream(`www/${path}`).pipe(response);
 };
 
 const notFound = response => {
@@ -96,7 +96,7 @@ const server = http.createServer((request, response) => {
   );
   switch (url.pathname) {
     case "/":
-      return static(response, "index.html", "text/html");
+      return www(response, "index.html", "text/html");
     case "/login":
       return login(response, url);
     case "/authorize":
