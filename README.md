@@ -12,9 +12,14 @@ docker run --rm -it -p 127.0.0.1:8888:8888 -e PORT=8888 \
   spotikai:dev
 ```
 
-## TODO
-
-- Show something on the screen... anything...
-- Playback contols—not sure how this would work since librespot seems to get pretty far ahead of Spotify Connect
-- Stream PCM frames directly via WebSockets to avoid MP3 overhead and volatile connection
-- Server should be in Rust and implement [Sink](https://docs.rs/librespot-playback/0.1.3/librespot_playback/audio_backend/trait.Sink.html) directly without subprocess overhead
+<details>
+  <summary>Ideas for improvement</summary>
+  <ul>
+    <li>Show something on the screen... anything... (<a href="https://github.com/veatik90/spotify-playlists-kaios/tree/master/src">this project</a> looks pretty nice)</li>
+    <li>Playback contols—not sure how this would work since librespot seems to get pretty far ahead of Spotify Connect</li>
+    <li>Stream PCM frames directly via WebSockets to avoid MP3 overhead and volatile connection (see <a href="https://github.com/audiojs
+">audiojs</a>)</li>
+    <li>Server should be in Rust and implement <a href="https://docs.rs/librespot-playback/0.1.3/librespot_playback/audio_backend/trait.Sink.html">Sink</a> directly without subprocess overhead</li>
+    <li>KaiOS supports ad monetization: https://www.kaiostech.com/developer-faq/ https://www.kaiads.com/publishers/sdk.html</li>
+  </ul>
+</details>
